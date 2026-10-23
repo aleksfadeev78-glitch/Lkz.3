@@ -1,0 +1,1831 @@
+
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <style>
+                body {
+                  background-color: white; /* Ensure the iframe has a white background */
+                }
+
+                
+              </style>
+                        </head>
+                        <body>
+                            <!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f1115">
+  <title>Мониторинг лазерного станка</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: #0f1115;
+      color: #e8edf5;
+      padding: 12px;
+      padding-top: max(12px, env(safe-area-inset-top));
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+    }
+
+    h1 {
+      font-size: 22px;
+      margin: 0 0 10px;
+    }
+
+    .warning {
+      background: #2b230f;
+      border: 1px solid #665322;
+      color: #ffd780;
+      padding: 10px 12px;
+      border-radius: 14px;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .layout {
+      display: grid;
+      gap: 12px;
+    }
+
+    .column {
+      display: grid;
+      gap: 12px;
+    }
+
+    @media (min-width: 980px) {
+      .layout {
+        grid-template-columns: 1.1fr 0.9fr;
+        align-items: start;
+      }
+    }
+
+    .video-wrap {
+      position: relative;
+      background: #000;
+      border: 1px solid #2b3240;
+      border-radius: 16px;
+      overflow: hidden;
+      aspect-ratio: 4 / 3;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      background: rgba(15, 17, 21, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e8edf5;
+    }
+
+    .state-banner {
+      padding: 18px 14px;
+      border-radius: 18px;
+      text-align: center;
+      font-weight: 900;
+      font-size: 34px;
+      letter-spacing: 1px;
+      border: 1px solid #2b3240;
+      background: #181c24;
+      color: #aab4c5;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      user-select: none;
+    }
+
+    body.state-on .state-banner {
+      background: #0d3a20;
+      color: #86ffb2;
+      border-color: #2a7b45;
+      box-shadow: 0 0 24px rgba(50, 255, 120, 0.18);
+    }
+
+    body.state-off .state-banner {
+      background: #181c24;
+      color: #aab4c5;
+    }
+
+    body.state-paused .state-banner {
+      background: #332c12;
+      color: #ffd780;
+    }
+
+    .card {
+      background: #171b22;
+      border: 1px solid #2b3240;
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .metrics {
+      white-space: pre-line;
+      color: #aeb9ca;
+      font-size: 14px;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 10px;
+      font: inherit;
+      font-weight: 700;
+      background: #2b3240;
+      color: #fff;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    button.primary {
+      background: #1d4ed8;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      color: #c8d2e0;
+      font-size: 14px;
+    }
+
+    select,
+    input[type="range"],
+    input[type="text"],
+    input[type="password"],
+    input[type="number"] {
+      width: 100%;
+    }
+
+    select,
+    input[type="text"],
+    input[type="password"],
+    input[type="number"] {
+      background: #0e1116;
+      color: #e8edf5;
+      border: 1px solid #33405a;
+      border-radius: 10px;
+      padding: 10px;
+      font: inherit;
+    }
+
+    input[type="range"] {
+      accent-color: #4f7cff;
+    }
+
+    .checks {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .checks label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    .journal {
+      max-height: 320px;
+      overflow: auto;
+      display: grid;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+
+    .j-item {
+      padding: 7px 9px;
+      border-radius: 10px;
+      background: #0e1116;
+      border: 1px solid #263041;
+      color: #dfe7f3;
+    }
+
+    .j-item.on {
+      color: #8effb7;
+      border-color: #245b37;
+    }
+
+    .j-item.off {
+      color: #ffce85;
+      border-color: #6b5320;
+    }
+
+    .j-item.error {
+      color: #ff9c9c;
+      border-color: #6e2d2d;
+    }
+
+    .j-item img {
+      margin-top: 6px;
+      max-width: 180px;
+      border-radius: 8px;
+      display: block;
+      border: 1px solid #2b3240;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .small {
+      font-size: 12px;
+      color: #97a3b7;
+      margin-top: 10px;
+    }
+
+    details {
+      margin-top: 10px;
+      background: #0e1116;
+      border: 1px solid #263041;
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
+  </style>
+</head>
+
+<body class="state-off">
+  <h1>Мониторинг лазерного станка</h1>
+
+  <div class="warning">
+    Это вспомогательная система визуального контроля. Не используйте её как защитную блокировку станка.
+    Не направляйте камеру на прямой лазерный луч без защиты.
+    Для камеры и установки как PWA нужен HTTPS или localhost.
+  </div>
+
+  <div class="layout">
+    <div class="column">
+      <div class="video-wrap">
+        <video id="video" autoplay playsinline muted></video>
+        <div class="badge" id="camBadge">камера выключена</div>
+      </div>
+
+      <div class="state-banner" id="stateBanner">НЕ ЗАПУЩЕНО</div>
+
+      <div class="card metrics" id="metrics">
+        Запустите камеру и направьте её на зону резки или индикатор работы станка.
+      </div>
+
+      <div class="card">
+        <div class="row">
+          <strong>Статистика работы</strong>
+          <span class="small">хранится локально</span>
+        </div>
+
+        <label for="shiftHour">Начало смены, часы (0–23)</label>
+        <input id="shiftHour" type="number" min="0" max="23" value="8">
+
+        <div class="metrics" id="statsBox" style="margin-top: 10px;">
+          Статистика появится после первого запуска/остановки станка.
+        </div>
+
+        <div class="buttons" style="margin-top: 10px;">
+          <button id="exportStatsBtn">Статистика CSV</button>
+          <button id="exportJournalCsvBtn">Журнал CSV</button>
+          <button id="exportReportBtn">HTML-отчёт</button>
+          <button id="clearStatsBtn">Очистить статистику</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="column">
+      <div class="card">
+        <div class="buttons">
+          <button id="startBtn" class="primary">Включить камеру</button>
+          <button id="pauseBtn" disabled>Пауза</button>
+          <button id="calibrateBtn" disabled>Калибровка: ВЫКЛ</button>
+          <button id="switchBtn" disabled>Сменить камеру</button>
+        </div>
+
+        <button id="resetBaselineBtn" style="width: 100%; margin-top: 8px;">
+          Сбросить калибровку фона
+        </button>
+
+        <button id="screenshotBtn" style="width: 100%; margin-top: 8px;">
+          Скриншот и скачать
+        </button>
+
+        <label for="mode">Режим детекции</label>
+        <select id="mode">
+          <option value="and" selected>Яркость И движение (рекомендуется)</option>
+          <option value="or">Яркость ИЛИ движение</option>
+          <option value="bright">Только яркость</option>
+          <option value="motion">Только движение</option>
+        </select>
+
+        <label for="sensitivity">
+          Чувствительность: <span id="sensVal">70</span>
+        </label>
+        <input id="sensitivity" type="range" min="1" max="100" value="70">
+
+        <label for="brightTh">
+          Порог яркости пикселя: <span id="brightVal">220</span>
+        </label>
+        <input id="brightTh" type="range" min="80" max="255" value="220">
+
+        <label for="diffTh">
+          Порог изменения для движения: <span id="diffVal">20</span>
+        </label>
+        <input id="diffTh" type="range" min="5" max="80" value="20">
+
+        <div class="checks">
+          <label>
+            <input type="checkbox" id="soundOn" checked>
+            Звук при смене состояния
+          </label>
+
+          <label>
+            <input type="checkbox" id="vibroOn" checked>
+            Вибрация при смене состояния
+          </label>
+
+          <label>
+            <input type="checkbox" id="wakeLockOn" checked>
+            Не гасить экран, пока включён контроль
+          </label>
+
+          <label>
+            <input type="checkbox" id="autoShot" checked>
+            Автоматический скриншот при запуске/остановке
+          </label>
+
+          <label>
+            <input type="checkbox" id="localNotifyOn">
+            Локальные уведомления браузера
+          </label>
+        </div>
+
+        <div class="buttons" style="margin-top: 8px;">
+          <button id="notifyPermissionBtn">Разрешить уведомления</button>
+          <button id="installBtn" disabled>Установить приложение</button>
+        </div>
+
+        <div class="buttons" style="margin-top: 8px;">
+          <button id="clearJournalBtn">Очистить журнал</button>
+        </div>
+
+        <div class="small">
+          Рекомендация: закрепите телефон неподвижно. При выключенном станке нажмите
+          «Калибровка: ВЫКЛ». Если есть ложные срабатывания — снижайте чувствительность.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row">
+          <strong>Telegram-уведомления</strong>
+          <span class="small">бесплатно</span>
+        </div>
+
+        <div class="checks">
+          <label>
+            <input type="checkbox" id="tgEnable">
+            Включить Telegram-уведомления
+          </label>
+        </div>
+
+        <label for="tgToken">Токен бота</label>
+        <input id="tgToken" type="password" placeholder="1234567890:AA...">
+
+        <label for="tgChatId">Chat ID</label>
+        <input id="tgChatId" type="text" placeholder="123456789">
+
+        <div class="checks">
+          <label>
+            <input type="checkbox" id="tgNotifyStop" checked>
+            Сообщать при остановке станка
+          </label>
+
+          <label>
+            <input type="checkbox" id="tgNotifyStart">
+            Сообщать при запуске станка
+          </label>
+
+          <label>
+            <input type="checkbox" id="tgNotifyError" checked>
+            Сообщать об ошибках камеры
+          </label>
+        </div>
+
+        <div class="buttons" style="margin-top: 8px;">
+          <button id="tgTestBtn">Тест</button>
+          <button id="tgHelpBtn">Инструкция</button>
+        </div>
+
+        <details id="tgHelpBox">
+          <summary>Инструкция по настройке Telegram</summary>
+          <div class="small">
+            <p>1. В Telegram найдите <b>@BotFather</b>.</p>
+            <p>2. Отправьте ему команду <b>/newbot</b> и создайте бота.</p>
+            <p>3. Скопируйте полученный токен в поле выше.</p>
+            <p>4. Найдите вашего нового бота и отправьте ему сообщение <b>/start</b>.</p>
+            <p>5. Чтобы узнать Chat ID, откройте в браузере:<br>
+            <b>https://api.telegram.org/botВАШ_ТОКЕН/getUpdates</b></p>
+            <p>6. Найдите блок вида: <b>"chat":{"id":123456789}</b>. Это ваш Chat ID.</p>
+            <p>7. Вернитесь сюда, вставьте Chat ID и нажмите «Тест».</p>
+            <p>Важно: токен даёт доступ к боту. Не публикуйте страницу с токеном в открытом доступе.</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="card">
+        <div class="row">
+          <strong>Журнал событий и скриншоты</strong>
+          <span class="small">последние 100 событий</span>
+        </div>
+
+        <div id="journalList" class="journal"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const $ = id => document.getElementById(id);
+
+      const video = $('video');
+      const startBtn = $('startBtn');
+      const pauseBtn = $('pauseBtn');
+      const calibrateBtn = $('calibrateBtn');
+      const switchBtn = $('switchBtn');
+      const resetBaselineBtn = $('resetBaselineBtn');
+      const screenshotBtn = $('screenshotBtn');
+
+      const modeSel = $('mode');
+      const sensInput = $('sensitivity');
+      const brightThInput = $('brightTh');
+      const diffThInput = $('diffTh');
+      const shiftHourInput = $('shiftHour');
+
+      const soundChk = $('soundOn');
+      const vibroChk = $('vibroOn');
+      const wakeChk = $('wakeLockOn');
+      const autoShotChk = $('autoShot');
+      const localNotifyChk = $('localNotifyOn');
+
+      const stateBanner = $('stateBanner');
+      const metricsEl = $('metrics');
+      const camBadge = $('camBadge');
+      const statsBox = $('statsBox');
+      const journalList = $('journalList');
+
+      const sensVal = $('sensVal');
+      const brightVal = $('brightVal');
+      const diffVal = $('diffVal');
+
+      const exportStatsBtn = $('exportStatsBtn');
+      const exportJournalCsvBtn = $('exportJournalCsvBtn');
+      const exportReportBtn = $('exportReportBtn');
+      const clearStatsBtn = $('clearStatsBtn');
+      const clearJournalBtn = $('clearJournalBtn');
+
+      const notifyPermissionBtn = $('notifyPermissionBtn');
+      const installBtn = $('installBtn');
+
+      const tgEnable = $('tgEnable');
+      const tgToken = $('tgToken');
+      const tgChatId = $('tgChatId');
+      const tgNotifyStart = $('tgNotifyStart');
+      const tgNotifyStop = $('tgNotifyStop');
+      const tgNotifyError = $('tgNotifyError');
+      const tgTestBtn = $('tgTestBtn');
+      const tgHelpBtn = $('tgHelpBtn');
+      const tgHelpBox = $('tgHelpBox');
+
+      const PROC_W = 320;
+      const PROC_H = 240;
+      const TOTAL = PROC_W * PROC_H;
+
+      const procCanvas = document.createElement('canvas');
+      procCanvas.width = PROC_W;
+      procCanvas.height = PROC_H;
+
+      const procCtx = procCanvas.getContext('2d', {
+        willReadFrequently: true
+      });
+
+      const bufA = new Uint8Array(TOTAL);
+      const bufB = new Uint8Array(TOTAL);
+
+      let prevGray = null;
+      let currGray = bufA;
+      let hasPrev = false;
+
+      let stream = null;
+      let running = false;
+      let paused = false;
+      let calibrating = false;
+
+      let facing = 'environment';
+
+      let brightPx = 0;
+      let motionPx = 0;
+
+      let fps = 0;
+      let frameCount = 0;
+      let fpsTime = performance.now();
+
+      let active = false;
+      let onCount = 0;
+      let offCount = 0;
+      let stateSince = Date.now();
+
+      let calibSamples = [];
+      let baseline = null;
+
+      let audioCtx = null;
+      let wakeLock = null;
+
+      let lastProcess = 0;
+      let rafId = null;
+
+      let sessions = [];
+      let journal = [];
+      let activeStart = null;
+      let lastTelegramTs = 0;
+
+      const PROCESS_MS = 100;
+      const ON_FRAMES = 6;
+      const OFF_FRAMES = 24;
+
+      const SETTINGS_KEY = 'laser_monitor_settings_v2';
+      const STATS_KEY = 'laser_monitor_stats_v2';
+      const JOURNAL_KEY = 'laser_monitor_journal_v2';
+      const CURRENT_SESSION_KEY = 'laser_monitor_current_session_v2';
+
+      function fmtDur(ms) {
+        if (!ms || ms < 0) ms = 0;
+        const totalSec = Math.floor(ms / 1000);
+        const days = Math.floor(totalSec / 86400);
+        const hours = Math.floor((totalSec % 86400) / 3600);
+        const minutes = Math.floor((totalSec % 3600) / 60);
+        const seconds = totalSec % 60;
+
+        if (days > 0) {
+          return `${days}д ${hours}ч ${minutes}м`;
+        }
+
+        if (hours > 0) {
+          return `${hours}ч ${minutes}м ${seconds}с`;
+        }
+
+        return `${minutes}м ${seconds}с`;
+      }
+
+      function fmtDateTime(ts) {
+        return new Date(ts).toLocaleString();
+      }
+
+      function addJournal(type, msg, cls = 'info', shot = null) {
+        const entry = {
+          ts: Date.now(),
+          type,
+          msg,
+          cls,
+          brightPx,
+          motionPx,
+          active,
+          shot
+        };
+
+        journal.unshift(entry);
+        saveJournal();
+        renderJournal();
+      }
+
+      function saveJournal() {
+        let toSave = journal.slice(0, 200);
+
+        try {
+          localStorage.setItem(JOURNAL_KEY, JSON.stringify(toSave));
+        } catch (e) {
+          try {
+            toSave = toSave.map((item, index) => {
+              if (index < 20) return item;
+              return { ...item, shot: undefined };
+            });
+            localStorage.setItem(JOURNAL_KEY, JSON.stringify(toSave));
+            journal = toSave;
+          } catch (e2) {
+            try {
+              const minimal = toSave.map(item => {
+                const copy = { ...item };
+                delete copy.shot;
+                return copy;
+              });
+              localStorage.setItem(JOURNAL_KEY, JSON.stringify(minimal));
+              journal = minimal;
+            } catch (e3) {
+              // ignore
+            }
+          }
+        }
+      }
+
+      function loadJournal() {
+        try {
+          journal = JSON.parse(localStorage.getItem(JOURNAL_KEY) || '[]');
+        } catch (e) {
+          journal = [];
+        }
+      }
+
+      function renderJournal() {
+        journalList.innerHTML = '';
+
+        const frag = document.createDocumentFragment();
+
+        journal.slice(0, 100).forEach(entry => {
+          const div = document.createElement('div');
+          div.className = `j-item ${entry.cls || ''}`;
+
+          const line = document.createElement('div');
+          line.textContent = `[${fmtDateTime(entry.ts)}] ${entry.msg}`;
+          div.appendChild(line);
+
+          if (entry.shot) {
+            const img = document.createElement('img');
+            img.loading = 'lazy';
+            img.src = entry.shot;
+            img.alt = 'Скриншот';
+            div.appendChild(img);
+          }
+
+          frag.appendChild(div);
+        });
+
+        journalList.appendChild(frag);
+      }
+
+      function saveSessions() {
+        try {
+          if (sessions.length > 3000) {
+            sessions = sessions.slice(-3000);
+          }
+          localStorage.setItem(STATS_KEY, JSON.stringify(sessions));
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      function loadSessions() {
+        try {
+          sessions = JSON.parse(localStorage.getItem(STATS_KEY) || '[]');
+        } catch (e) {
+          sessions = [];
+        }
+      }
+
+      function addSession(startTs, endTs) {
+        if (!startTs || !endTs || endTs <= startTs) return;
+
+        sessions.push({
+          start: startTs,
+          end: endTs,
+          duration: endTs - startTs
+        });
+
+        saveSessions();
+        renderStats();
+      }
+
+      function getShiftStartTs() {
+        const h = Number(shiftHourInput.value || 0);
+        const d = new Date();
+
+        if (d.getHours() < h) {
+          d.setDate(d.getDate() - 1);
+        }
+
+        d.setHours(h, 0, 0, 0);
+        return d.getTime();
+      }
+
+      function calcSince(ts) {
+        let ms = 0;
+        let count = 0;
+
+        for (const s of sessions) {
+          if (s.start >= ts) {
+            ms += s.duration;
+            count++;
+          }
+        }
+
+        return { ms, count };
+      }
+
+      function getStats() {
+        const now = Date.now();
+
+        const shiftStart = getShiftStartTs();
+
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+
+        const sevenDaysAgo = now - 7 * 86400000;
+
+        return {
+          current: activeStart ? now - activeStart : 0,
+          shift: calcSince(shiftStart),
+          today: calcSince(todayStart.getTime()),
+          week: calcSince(sevenDaysAgo),
+          total: {
+            ms: sessions.reduce((sum, s) => sum + s.duration, 0),
+            count: sessions.length
+          }
+        };
+      }
+
+      function renderStats() {
+        const st = getStats();
+
+        statsBox.textContent =
+`Текущая работа: ${fmtDur(st.current)}
+Смена: ${fmtDur(st.shift.ms)} (${st.shift.count} запусков)
+Сегодня: ${fmtDur(st.today.ms)} (${st.today.count} запусков)
+7 дней: ${fmtDur(st.week.ms)} (${st.week.count} запусков)
+Всего: ${fmtDur(st.total.ms)} (${st.total.count} запусков)`;
+      }
+
+      function saveSettings() {
+        try {
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+            mode: modeSel.value,
+            sens: sensInput.value,
+            bright: brightThInput.value,
+            diff: diffThInput.value,
+            shiftHour: shiftHourInput.value,
+            sound: soundChk.checked,
+            vibro: vibroChk.checked,
+            wake: wakeChk.checked,
+            autoShot: autoShotChk.checked,
+            localNotify: localNotifyChk.checked,
+            tgEnable: tgEnable.checked,
+            tgToken: tgToken.value,
+            tgChatId: tgChatId.value,
+            tgNotifyStart: tgNotifyStart.checked,
+            tgNotifyStop: tgNotifyStop.checked,
+            tgNotifyError: tgNotifyError.checked
+          }));
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      function loadSettings() {
+        try {
+          const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null');
+          if (!s) return;
+
+          if (s.mode) modeSel.value = s.mode;
+          if (s.sens) sensInput.value = s.sens;
+          if (s.bright) brightThInput.value = s.bright;
+          if (s.diff) diffThInput.value = s.diff;
+          if (s.shiftHour !== undefined) shiftHourInput.value = s.shiftHour;
+
+          soundChk.checked = s.sound !== false;
+          vibroChk.checked = s.vibro !== false;
+          wakeChk.checked = s.wake !== false;
+          autoShotChk.checked = s.autoShot !== false;
+          localNotifyChk.checked = Boolean(s.localNotify);
+
+          tgEnable.checked = Boolean(s.tgEnable);
+          tgToken.value = s.tgToken || '';
+          tgChatId.value = s.tgChatId || '';
+          tgNotifyStart.checked = Boolean(s.tgNotifyStart);
+          tgNotifyStop.checked = s.tgNotifyStop !== false;
+          tgNotifyError.checked = s.tgNotifyError !== false;
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      function refreshLabels() {
+        sensVal.textContent = sensInput.value;
+        brightVal.textContent = brightThInput.value;
+        diffVal.textContent = diffThInput.value;
+        saveSettings();
+      }
+
+      [
+        modeSel,
+        sensInput,
+        brightThInput,
+        diffThInput,
+        shiftHourInput,
+        soundChk,
+        vibroChk,
+        wakeChk,
+        autoShotChk,
+        localNotifyChk,
+        tgEnable,
+        tgToken,
+        tgChatId,
+        tgNotifyStart,
+        tgNotifyStop,
+        tgNotifyError
+      ].forEach(el => {
+        el.addEventListener('change', () => {
+          refreshLabels();
+          if (el === wakeChk) handleWakeChange();
+        });
+      });
+
+      async function initAudio() {
+        try {
+          if (!audioCtx) {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) audioCtx = new AC();
+          }
+
+          if (audioCtx && audioCtx.state === 'suspended') {
+            await audioCtx.resume();
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      function beep(freq = 880, dur = 0.18, type = 'sine', gain = 0.12) {
+        if (!soundChk.checked || !audioCtx) return;
+
+        try {
+          const osc = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+
+          osc.type = type;
+          osc.frequency.value = freq;
+          g.gain.value = gain;
+
+          osc.connect(g);
+          g.connect(audioCtx.destination);
+
+          const now = audioCtx.currentTime;
+          g.gain.setValueAtTime(gain, now);
+          g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+          osc.start(now);
+          osc.stop(now + dur);
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      function vibrate(pattern) {
+        if (vibroChk.checked && navigator.vibrate) {
+          try {
+            navigator.vibrate(pattern);
+          } catch (e) {
+            // ignore
+          }
+        }
+      }
+
+      async function requestWakeLock() {
+        try {
+          if ('wakeLock' in navigator) {
+            if (wakeLock) {
+              await wakeLock.release().catch(() => {});
+            }
+
+            wakeLock = await navigator.wakeLock.request('screen');
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      async function handleWakeChange() {
+        if (wakeChk.checked && running) {
+          await requestWakeLock();
+        } else if (wakeLock) {
+          await wakeLock.release().catch(() => {});
+          wakeLock = null;
+        }
+      }
+
+      document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible') {
+          if (running && !paused) {
+            resetAnalysis();
+          }
+
+          if (running && wakeChk.checked) {
+            await requestWakeLock();
+          }
+        }
+      });
+
+      function resetAnalysis() {
+        hasPrev = false;
+        prevGray = null;
+        currGray = bufA;
+        onCount = 0;
+        offCount = 0;
+      }
+
+      function setControls() {
+        startBtn.textContent = running ? 'Выключить камеру' : 'Включить камеру';
+
+        pauseBtn.disabled = !running || calibrating;
+        switchBtn.disabled = !running || calibrating;
+        calibrateBtn.disabled = !running || paused || calibrating;
+
+        camBadge.textContent = !running
+          ? 'камера выключена'
+          : (paused ? 'пауза' : 'анализ видео');
+      }
+
+      function renderState() {
+        document.body.classList.remove('state-on', 'state-off', 'state-paused');
+
+        if (!running) {
+          document.body.classList.add('state-off');
+          stateBanner.textContent = 'НЕ ЗАПУЩЕНО';
+        } else if (paused) {
+          document.body.classList.add('state-paused');
+          stateBanner.textContent = 'ПАУЗА';
+        } else if (active) {
+          document.body.classList.add('state-on');
+          stateBanner.textContent = 'РАБОТАЕТ';
+        } else {
+          document.body.classList.add('state-off');
+          stateBanner.textContent = 'НЕ РАБОТАЕТ';
+        }
+      }
+
+      async function sendTelegram(text, force = false) {
+        if (!tgEnable.checked) return false;
+
+        const token = tgToken.value.trim();
+        const chatId = tgChatId.value.trim();
+
+        if (!token || !chatId) return false;
+
+        const now = Date.now();
+
+        if (!force && now - lastTelegramTs < 15000) {
+          return false;
+        }
+
+        lastTelegramTs = now;
+
+        try {
+          const url = `https://api.telegram.org/bot${token}/sendMessage`;
+
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text,
+              disable_web_page_preview: true
+            })
+          });
+
+          const data = await res.json();
+          return Boolean(data.ok);
+        } catch (e) {
+          return false;
+        }
+      }
+
+      function localNotify(title, body) {
+        if (!localNotifyChk.checked) return;
+
+        if ('Notification' in window && Notification.permission === 'granted') {
+          try {
+            new Notification(title, { body });
+          } catch (e) {
+            // ignore
+          }
+        }
+      }
+
+      function notifyProblem(text) {
+        addJournal('error', text, 'error');
+        localNotify('Проблема станка', text);
+
+        if (tgNotifyError.checked) {
+          sendTelegram(`⚠️ ${text}`);
+        }
+      }
+
+      function captureDataUrl(w = 320, h = 180, quality = 0.6) {
+        if (video.readyState < 2 || !video.videoWidth) return null;
+
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+
+        const ctx = c.getContext('2d');
+
+        const vw = video.videoWidth;
+        const vh = video.videoHeight;
+
+        const scale = Math.max(w / vw, h / vh);
+        const sw = w / scale;
+        const sh = h / scale;
+        const sx = (vw - sw) / 2;
+        const sy = (vh - sh) / 2;
+
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(video, sx, sy, sw, sh, 0, 0, w, h);
+
+        try {
+          return c.toDataURL('image/jpeg', quality);
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function downloadDataUrl(dataUrl, filename) {
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => a.remove(), 1000);
+      }
+
+      function downloadBlob(blob, filename) {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+
+        setTimeout(() => {
+          URL.revokeObjectURL(a.href);
+          a.remove();
+        }, 1000);
+      }
+
+      function csvEscape(value) {
+        let v = String(value ?? '');
+        if (/[;"\n]/.test(v)) {
+          return '"' + v.replace(/"/g, '""') + '"';
+        }
+        return v;
+      }
+
+      function exportStatsCsv() {
+        const st = getStats();
+        const BOM = String.fromCharCode(0xFEFF);
+
+        const rows = [
+          ['period', 'work_ms', 'work_human', 'starts'],
+          ['current', st.current, fmtDur(st.current), ''],
+          ['shift', st.shift.ms, fmtDur(st.shift.ms), st.shift.count],
+          ['today', st.today.ms, fmtDur(st.today.ms), st.today.count],
+          ['7days', st.week.ms, fmtDur(st.week.ms), st.week.count],
+          ['total', st.total.ms, fmtDur(st.total.ms), st.total.count]
+        ];
+
+        const csv = BOM + rows.map(row => row.map(csvEscape).join(';')).join('\n');
+        downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), 'laser-stats.csv');
+      }
+
+      function exportJournalCsv() {
+        const BOM = String.fromCharCode(0xFEFF);
+
+        const rows = [
+          ['time', 'type', 'message', 'bright_px', 'motion_px', 'active']
+        ];
+
+        journal.forEach(entry => {
+          rows.push([
+            new Date(entry.ts).toISOString(),
+            entry.type,
+            entry.msg,
+            entry.brightPx,
+            entry.motionPx,
+            entry.active ? 1 : 0
+          ]);
+        });
+
+        const csv = BOM + rows.map(row => row.map(csvEscape).join(';')).join('\n');
+        downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), 'laser-journal.csv');
+      }
+
+      function exportHtmlReport() {
+        const st = getStats();
+
+        const entriesHtml = journal.slice(0, 50).map(entry => {
+          const shotHtml = entry.shot
+            ? `<img src="${entry.shot}" style="max-width:260px;border-radius:8px;border:1px solid #ccc;">`
+            : '';
+
+          return `
+            <tr>
+              <td>${fmtDateTime(entry.ts)}</td>
+              <td>${entry.msg}</td>
+              <td>${entry.brightPx ?? ''}</td>
+              <td>${entry.motionPx ?? ''}</td>
+              <td>${shotHtml}</td>
+            </tr>
+          `;
+        }).join('');
+
+        const html = `
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Отчёт по лазерному станку</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; background: #fff; color: #111; }
+  table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+  th, td { border: 1px solid #999; padding: 8px; vertical-align: top; }
+  th { background: #eee; }
+  .stats { white-space: pre-line; background: #f7f7f7; padding: 12px; border-radius: 8px; }
+</style>
+</head>
+<body>
+<h1>Отчёт по мониторингу лазерного станка</h1>
+<p>Дата формирования: ${fmtDateTime(Date.now())}</p>
+
+<div class="stats">
+Текущая работа: ${fmtDur(st.current)}
+Смена: ${fmtDur(st.shift.ms)} (${st.shift.count} запусков)
+Сегодня: ${fmtDur(st.today.ms)} (${st.today.count} запусков)
+7 дней: ${fmtDur(st.week.ms)} (${st.week.count} запусков)
+Всего: ${fmtDur(st.total.ms)} (${st.total.count} запусков)
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Время</th>
+      <th>Событие</th>
+      <th>Яркие пиксели</th>
+      <th>Движение</th>
+      <th>Скриншот</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${entriesHtml}
+  </tbody>
+</table>
+
+</body>
+</html>
+        `;
+
+        downloadBlob(new Blob([html], { type: 'text/html;charset=utf-8' }), 'laser-report.html');
+      }
+
+      function setActive(val) {
+        if (active === val) return;
+
+        active = val;
+        onCount = 0;
+        offCount = 0;
+        stateSince = Date.now();
+
+        renderState();
+
+        if (active) {
+          activeStart = Date.now();
+          localStorage.setItem(CURRENT_SESSION_KEY, String(activeStart));
+
+          const shot = autoShotChk.checked ? captureDataUrl(240, 180, 0.55) : null;
+          addJournal('start', 'Обнаружена работа станка', 'on', shot);
+
+          localNotify('Станок', 'Обнаружена работа станка');
+
+          if (tgNotifyStart.checked) {
+            sendTelegram('✅ Лазерный станок: обнаружена работа.');
+          }
+
+          beep(1046, 0.18);
+          setTimeout(() => beep(1318, 0.18), 180);
+          vibrate([200, 100, 200]);
+        } else {
+          if (activeStart) {
+            const dur = Date.now() - activeStart;
+            addSession(activeStart, Date.now());
+
+            activeStart = null;
+            localStorage.removeItem(CURRENT_SESSION_KEY);
+
+            const shot = autoShotChk.checked ? captureDataUrl(240, 180, 0.55) : null;
+            addJournal('stop', `Станок остановился. Длительность работы: ${fmtDur(dur)}`, 'off', shot);
+
+            localNotify('Станок', 'Станок остановился');
+
+            if (tgNotifyStop.checked) {
+              sendTelegram(`⛔ Лазерный станок остановился. До этого работал: ${fmtDur(dur)}.`);
+            }
+          } else {
+            addJournal('stop', 'Станок не работает', 'off');
+          }
+
+          beep(440, 0.22);
+          vibrate([80]);
+        }
+      }
+
+      function thresholds() {
+        const s = Number(sensInput.value);
+        const t = (101 - s) / 100;
+
+        let brightMin = Math.round(5 + 320 * t * t);
+        let motionMin = Math.round(50 + 3200 * t * t);
+
+        if (baseline) {
+          brightMin = Math.max(brightMin, Math.round(baseline.brightPx * 1.5 + 8));
+          motionMin = Math.max(motionMin, Math.round(baseline.motionPx * 1.5 + 80));
+        }
+
+        return {
+          brightMin,
+          motionMin,
+          pixelBright: Number(brightThInput.value),
+          pixelDiff: Number(diffThInput.value)
+        };
+      }
+
+      function updateMetrics(th) {
+        const durSec = Math.floor((Date.now() - stateSince) / 1000);
+        const mm = String(Math.floor(durSec / 60)).padStart(2, '0');
+        const ss = String(durSec % 60).padStart(2, '0');
+
+        const status = !running
+          ? 'не запущено'
+          : (paused ? 'пауза' : (active ? 'РАБОТАЕТ' : 'НЕ РАБОТАЕТ'));
+
+        metricsEl.textContent =
+`Яркие пиксели: ${brightPx} (порог ${th.brightMin})
+Движение: ${motionPx} (порог ${th.motionMin})
+FPS анализа: ${fps} | Состояние: ${status} | ${mm}:${ss}
+Калибровка фона: ${baseline ? 'да' : 'нет'}`;
+      }
+
+      function processFrame() {
+        if (video.readyState < 2 || video.videoWidth === 0) return;
+
+        procCtx.drawImage(video, 0, 0, PROC_W, PROC_H);
+
+        let img;
+        try {
+          img = procCtx.getImageData(0, 0, PROC_W, PROC_H);
+        } catch (e) {
+          return;
+        }
+
+        const d = img.data;
+        const th = thresholds();
+
+        let bright = 0;
+        let motion = 0;
+
+        for (let i = 0, j = 0; i < d.length; i += 4, j++) {
+          const r = d[i];
+          const g = d[i + 1];
+          const b = d[i + 2];
+
+          const y = (r * 77 + g * 150 + b * 29) >> 8;
+
+          currGray[j] = y;
+
+          if (y >= th.pixelBright) {
+            bright++;
+          }
+
+          if (hasPrev && Math.abs(y - prevGray[j]) >= th.pixelDiff) {
+            motion++;
+          }
+        }
+
+        brightPx = bright;
+        motionPx = motion;
+
+        if (calibrating) {
+          calibSamples.push({ bright, motion });
+        }
+
+        if (!hasPrev) {
+          prevGray = currGray;
+          currGray = bufB;
+          hasPrev = true;
+        } else {
+          const tmp = prevGray;
+          prevGray = currGray;
+          currGray = tmp;
+        }
+
+        if (calibrating) {
+          updateMetrics(th);
+          return;
+        }
+
+        const brightOk = brightPx >= th.brightMin;
+        const motionOk = motionPx >= th.motionMin;
+
+        let condition = false;
+
+        switch (modeSel.value) {
+          case 'bright':
+            condition = brightOk;
+            break;
+
+          case 'motion':
+            condition = motionOk;
+            break;
+
+          case 'or':
+            condition = brightOk || motionOk;
+            break;
+
+          case 'and':
+          default:
+            condition = brightOk && motionOk;
+            break;
+        }
+
+        if (condition) {
+          onCount++;
+          offCount = 0;
+        } else {
+          offCount++;
+          onCount = 0;
+        }
+
+        if (!active && onCount >= ON_FRAMES) {
+          setActive(true);
+        }
+
+        if (active && offCount >= OFF_FRAMES) {
+          setActive(false);
+        }
+
+        updateMetrics(th);
+      }
+
+      function loop(timestamp) {
+        if (!running) {
+          rafId = null;
+          return;
+        }
+
+        if (!paused && timestamp - lastProcess >= PROCESS_MS) {
+          lastProcess = timestamp;
+
+          processFrame();
+
+          frameCount++;
+          const now = performance.now();
+
+          if (now - fpsTime >= 1000) {
+            fps = Math.round(frameCount * 1000 / (now - fpsTime));
+            frameCount = 0;
+            fpsTime = now;
+          }
+        }
+
+        rafId = requestAnimationFrame(loop);
+      }
+
+      async function startCamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          notifyProblem('Браузер не поддерживает доступ к камере. Нужен HTTPS или localhost.');
+          alert('Браузер не поддерживает доступ к камере. Откройте страницу по HTTPS или через localhost.');
+          return;
+        }
+
+        await initAudio();
+
+        if (active) {
+          setActive(false);
+        }
+
+        stopCamera(true);
+
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+              facingMode: { ideal: facing },
+              width: { ideal: 640 },
+              height: { ideal: 480 },
+              frameRate: { ideal: 15 }
+            }
+          });
+
+          video.srcObject = stream;
+
+          await video.play();
+
+          running = true;
+          paused = false;
+          active = false;
+          stateSince = Date.now();
+
+          resetAnalysis();
+
+          const track = stream.getVideoTracks()[0];
+          if (track) {
+            track.addEventListener('ended', () => {
+              notifyProblem('Камера отключена системой.');
+              stopCamera(false);
+            });
+          }
+
+          renderState();
+          setControls();
+
+          addJournal('info', 'Камера включена');
+
+          if (wakeChk.checked) {
+            await requestWakeLock();
+          }
+
+          lastProcess = 0;
+          fpsTime = performance.now();
+          frameCount = 0;
+          fps = 0;
+
+          if (rafId) {
+            cancelAnimationFrame(rafId);
+          }
+
+          rafId = requestAnimationFrame(loop);
+        } catch (err) {
+          notifyProblem('Ошибка доступа к камере: ' + err.message);
+          alert('Не удалось открыть камеру. Разрешите доступ и откройте страницу по HTTPS или через localhost.');
+        }
+      }
+
+      function stopCamera(silent) {
+        if (rafId) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+
+        if (stream) {
+          stream.getTracks().forEach(t => t.stop());
+          stream = null;
+        }
+
+        video.srcObject = null;
+
+        running = false;
+        paused = false;
+        calibrating = false;
+        calibSamples = [];
+        active = false;
+
+        resetAnalysis();
+
+        if (wakeLock) {
+          wakeLock.release().catch(() => {});
+          wakeLock = null;
+        }
+
+        pauseBtn.textContent = 'Пауза';
+        calibrateBtn.textContent = 'Калибровка: ВЫКЛ';
+
+        renderState();
+        setControls();
+
+        if (!silent) {
+          addJournal('info', 'Камера выключена');
+          metricsEl.textContent = 'Запустите камеру и направьте её на зону резки.';
+        }
+      }
+
+      startBtn.addEventListener('click', async () => {
+        if (!running) {
+          await startCamera();
+        } else {
+          stopCamera(false);
+        }
+      });
+
+      switchBtn.addEventListener('click', async () => {
+        if (!running || calibrating) return;
+
+        facing = facing === 'environment' ? 'user' : 'environment';
+        await startCamera();
+      });
+
+      pauseBtn.addEventListener('click', () => {
+        if (!running || calibrating) return;
+
+        paused = !paused;
+        pauseBtn.textContent = paused ? 'Продолжить' : 'Пауза';
+
+        if (!paused) {
+          resetAnalysis();
+        }
+
+        renderState();
+        setControls();
+
+        addJournal('info', paused ? 'Пауза' : 'Анализ возобновлён');
+      });
+
+      calibrateBtn.addEventListener('click', async () => {
+        if (!running || paused || calibrating) return;
+
+        await initAudio();
+
+        calibrating = true;
+        calibSamples = [];
+        onCount = 0;
+        offCount = 0;
+
+        calibrateBtn.disabled = true;
+        calibrateBtn.textContent = 'Калибровка...';
+
+        addJournal('info', 'Калибровка фона: станок должен быть ВЫКЛЮЧЕН, в кадре не должно быть движения.');
+
+        await new Promise(resolve => setTimeout(resolve, 2200));
+
+        calibrating = false;
+
+        calibrateBtn.textContent = 'Калибровка: ВЫКЛ';
+        calibrateBtn.disabled = !running || paused || calibrating;
+
+        if (!running) {
+          addJournal('error', 'Калибровка прервана', 'error');
+          return;
+        }
+
+        if (calibSamples.length < 8) {
+          addJournal('error', 'Недостаточно данных для калибровки', 'error');
+          return;
+        }
+
+        const avgB = calibSamples.reduce((s, x) => s + x.bright, 0) / calibSamples.length;
+        const avgM = calibSamples.reduce((s, x) => s + x.motion, 0) / calibSamples.length;
+
+        const maxB = Math.max(...calibSamples.map(x => x.bright));
+        const maxM = Math.max(...calibSamples.map(x => x.motion));
+
+        baseline = {
+          brightPx: Math.max(avgB, maxB * 0.6),
+          motionPx: Math.max(avgM, maxM * 0.6)
+        };
+
+        addJournal('info', `Фон запомнен: ярких пикселей ~${Math.round(baseline.brightPx)}, движение ~${Math.round(baseline.motionPx)}`, 'on');
+
+        beep(880, 0.12);
+        vibrate([60]);
+      });
+
+      resetBaselineBtn.addEventListener('click', () => {
+        baseline = null;
+        addJournal('info', 'Калибровка фона сброшена');
+      });
+
+      screenshotBtn.addEventListener('click', () => {
+        const shot = captureDataUrl(640, 480, 0.8);
+
+        if (!shot) {
+          addJournal('error', 'Не удалось сделать скриншот. Камера не активна.', 'error');
+          return;
+        }
+
+        addJournal('screenshot', 'Ручной скриншот', 'info', shot);
+        downloadDataUrl(shot, `laser-screenshot-${Date.now()}.jpg`);
+      });
+
+      clearJournalBtn.addEventListener('click', () => {
+        if (!confirm('Очистить журнал событий?')) return;
+
+        journal = [];
+        saveJournal();
+        renderJournal();
+      });
+
+      clearStatsBtn.addEventListener('click', () => {
+        if (!confirm('Очистить статистику работы? Это действие необратимо.')) return;
+
+        sessions = [];
+        saveSessions();
+        renderStats();
+        addJournal('info', 'Статистика очищена');
+      });
+
+      exportStatsBtn.addEventListener('click', exportStatsCsv);
+      exportJournalCsvBtn.addEventListener('click', exportJournalCsv);
+      exportReportBtn.addEventListener('click', exportHtmlReport);
+
+      notifyPermissionBtn.addEventListener('click', async () => {
+        if (!('Notification' in window)) {
+          addJournal('error', 'Браузер не поддерживает локальные уведомления', 'error');
+          return;
+        }
+
+        const permission = await Notification.requestPermission();
+        addJournal('info', `Разрешение уведомлений: ${permission}`);
+      });
+
+      tgTestBtn.addEventListener('click', async () => {
+        await initAudio();
+
+        const ok = await sendTelegram('Тестовое сообщение от приложения мониторинга лазерного станка.', true);
+
+        if (ok) {
+          addJournal('telegram', 'Telegram: тестовое сообщение отправлено', 'on');
+          beep(1200, 0.12);
+        } else {
+          addJournal('error', 'Telegram: не удалось отправить сообщение. Проверьте токен и Chat ID.', 'error');
+          beep(300, 0.2);
+        }
+      });
+
+      tgHelpBtn.addEventListener('click', () => {
+        tgHelpBox.open = !tgHelpBox.open;
+      });
+
+      let deferredPrompt = null;
+
+      window.addEventListener('beforeinstallprompt', e => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.disabled = false;
+      });
+
+      installBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+
+        deferredPrompt = null;
+        installBtn.disabled = true;
+      });
+
+      function initPwa() {
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', async () => {
+            try {
+              await navigator.serviceWorker.register('sw.js');
+              addJournal('info', 'PWA: service worker зарегистрирован. Возможна офлайн-работа.');
+            } catch (e) {
+              addJournal('error', 'PWA: service worker не зарегистрирован. Проверьте файлы sw.js и manifest.webmanifest.', 'error');
+            }
+          });
+        }
+      }
+
+      loadSettings();
+      refreshLabels();
+      loadSessions();
+      loadJournal();
+
+      try {
+        localStorage.removeItem(CURRENT_SESSION_KEY);
+      } catch (e) {
+        // ignore
+      }
+
+      renderJournal();
+      renderStats();
+      renderState();
+      setControls();
+
+      setInterval(renderStats, 1000);
+
+      if (!window.isSecureContext) {
+        addJournal('error', 'Внимание: для камеры и PWA нужен HTTPS или localhost.', 'error');
+      }
+
+      addJournal('info', 'Страница готова. Нажмите «Включить камеру».');
+
+      initPwa();
+    })();
+  </script>
+</body>
+</html>
+
+
+              <script>
+                              const CACHE_NAME = 'laser-monitor-cache-v1';
+
+const ASSETS = [
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './icon.svg'
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(ASSETS))
+      .then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(
+        keys
+          .filter(key => key !== CACHE_NAME)
+          .map(key => caches.delete(key))
+      ))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', event => {
+  const request = event.request;
+
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  const url = new URL(request.url);
+
+  // Telegram API не кэшируем.
+  if (url.origin.includes('telegram.org')) {
+    return;
+  }
+
+  event.respondWith(
+    caches.match(request)
+      .then(cached => {
+        if (cached) {
+          return cached;
+        }
+
+        return fetch(request)
+          .then(response => {
+            if (response.ok && url.origin === location.origin) {
+              const clone = response.clone();
+
+              caches.open(CACHE_NAME).then(cache => {
+                cache.put(request, clone);
+              });
+            }
+
+            return response;
+          })
+          .catch(() => caches.match('./index.html'));
+      })
+  );
+});
+
+
+              </script>
+                        </body>
+                        </html>
+                    
